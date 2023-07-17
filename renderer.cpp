@@ -246,10 +246,21 @@ void generatemap (int startx, int starty) {
 		};
 	
 };
-gamemap[mapx][mapy] = '#';
 gamemap[startx][starty] = 's';
+gamemap[mapx][mapy] = '#';
+
 }
 
+
+int playerrotation = 0;
+void render3d() {
+	
+	
+	
+	
+	
+	
+}
 
 void templateprinter(int north, int east, int south, int west, int layer, int colourselect) {
 	for(int o = 0; o < vres; o++) {
@@ -332,17 +343,17 @@ void settempplates() {
 	int plcvert3 = eastvert;
 	int trapvert1 = northvert;
 	int trapvert2 = eastvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 16, 4); //a2
-	templateprinter(northvert, westvert, southvert, 0, 15, 4); //a1
+	templateprinter(northvert, eastvert, southvert, westvert, 16, 8); //a2
+	templateprinter(northvert, westvert, southvert, 0, 15, 8); //a1
 	//a3 wall/portal tile
 	eastvert = hres - westvert;
 	westvert = midx + westvert;
 	int trapvert3 = westvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 18, 4); //a4
-	templateprinter(northvert, hres, southvert, eastvert, 19, 4); //a5
+	templateprinter(northvert, eastvert, southvert, westvert, 18, 8); //a4
+	templateprinter(northvert, hres, southvert, eastvert, 19, 8); //a5
 	westvert = midx - plcvert2;
 	eastvert = midx + plcvert2;
-	templateprinter(northvert, eastvert, southvert, westvert, 17, 4); //a3
+	templateprinter(northvert, eastvert, southvert, westvert, 17, 8); //a3
 	plcvert = midy / 3.5;
 	plcvert2 = midx / 2.5;
 	westvert = hres / 20;
@@ -350,39 +361,40 @@ void settempplates() {
 	southvert = midy + plcvert;
 	eastvert = midx - plcvert2;
 	int plcvert4 = eastvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 11, 4); //b2
+	templateprinter(northvert, eastvert, southvert, westvert, 11, 14); //b2
 
-	printtraptemplate(eastvert, northvert, trapvert2, trapvert1, 11, true, 4);
-	templateprinter(northvert, westvert, southvert, 0, 10, 4); //b1
+	printtraptemplate(eastvert, northvert, trapvert2, trapvert1, 11, true, 7);
+	templateprinter(northvert, westvert, southvert, 0, 10, 14); //b1
 	
 	trapvert2 = northvert;
 	eastvert = hres - westvert;
 	
 	westvert = midx + plcvert2;
 	int trapvert5 = westvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 13, 4); //b4
-	printtraptemplate(trapvert3, northvert, westvert, trapvert1, 13, false, 4);
-	templateprinter(northvert, hres, southvert, eastvert, 14, 4); //b5
+	templateprinter(northvert, eastvert, southvert, westvert, 13, 14); //b4
+	printtraptemplate(trapvert3, northvert, westvert, trapvert1, 13, false, 7);
+	templateprinter(northvert, hres, southvert, eastvert, 14, 14); //b5
 	trapvert1 = eastvert;
-	templateprinter(northvert, westvert, southvert, plcvert4, 12, 4); //b3
+	templateprinter(northvert, westvert, southvert, plcvert4, 12, 14); //b3
 	
 	plcvert = midy / 2;
 	plcvert2 = midx / 1.3;
 	westvert = 0;
 	northvert = midy - plcvert;
 	southvert = midy + plcvert;
+	
 	eastvert = midx - plcvert2;
-	templateprinter(northvert, eastvert, southvert, westvert, 6, 4); // c2
-	printtraptemplate(eastvert, northvert, plcvert4, trapvert2, 6, true, 4);
+	templateprinter(northvert, eastvert, southvert, westvert, 6, 15); // c2
+	printtraptemplate(eastvert, northvert, plcvert4, trapvert2, 6, true, 14);
 	plcvert3 = eastvert;
 	eastvert = hres;
 	westvert = midx + plcvert2;
-	templateprinter(northvert, eastvert, southvert, westvert, 8, 4); // c4
-	printtraptemplate(trapvert5, northvert, westvert, trapvert2, 8, false, 4);
-	templateprinter(northvert, westvert, southvert, plcvert3, 7, 4); //c3
+	templateprinter(northvert, eastvert, southvert, westvert, 8, 15); // c4
+	printtraptemplate(trapvert5, northvert, westvert, trapvert2, 8, false, 14);
+	templateprinter(northvert, westvert, southvert, plcvert3, 7, 15); //c3
 	plcvert = midy / 6;
-	printtraptemplate(-1, plcvert, plcvert3, northvert, 1, true, 4); // d2
-	printtraptemplate(westvert, plcvert, hres, northvert, 3, false, 4); //d4
+	printtraptemplate(-1, plcvert, plcvert3, northvert, 1, true, 15); // d2
+	printtraptemplate(westvert, plcvert, hres, northvert, 3, false, 15); //d4
 }
 
 
@@ -463,37 +475,37 @@ void gunlogic() {
 void loadingscreen() {
 	system("CLS");
 	SetConsoleTextAttribute(hConsole, 7);
-	for(int o = 0; 0 < vres; o++) {
+	for(int o = 0; o < vres; o++) {
 		for(int i = 0; i < hres; i++) {
-			cout<<" ";
+			cout<<"-";
 		};
 	};
 	Sleep(333);
 	system("CLS");	
-	for(int o = 0; 0 < vres; o++) {
+	for(int o = 0; o < vres; o++) {
 		for(int i = 0; i < hres; i++) {
-			cout<<"=";
+			cout<<"/";
 		};
 	};
 	Sleep(333);
 	system("CLS");	
-	for(int o = 0; 0 < vres; o++) {
-		for(int i = 0; i < hres; i++) {
-			cout<<" ";
-		};
-	};
-	Sleep(333);
-	system("CLS");	
-	for(int o = 0; 0 < vres; o++) {
+	for(int o = 0; o < vres; o++) {
 		for(int i = 0; i < hres; i++) {
 			cout<<"|";
 		};
 	};
 	Sleep(333);
-	system("CLS");
-	for(int o = 0; 0 < vres; o++) {
+	system("CLS");	
+	for(int o = 0; o < vres; o++) {
 		for(int i = 0; i < hres; i++) {
-			cout<<" ";
+			cout<<"\\";
+		};
+	};
+	Sleep(333);
+	system("CLS");
+	for(int o = 0; o < vres; o++) {
+		for(int i = 0; i < hres; i++) {
+			cout<<"-";
 		};
 	};
 };
@@ -533,7 +545,7 @@ void composscreen() {
 	//resets internal screen to entirely transparent + black
 	for(int IntScreenVertical = 0; IntScreenVertical < vres; IntScreenVertical++) {
 		for(int IntScreenHorizontal = 0; IntScreenHorizontal< hres; IntScreenHorizontal++) {
-			screen[IntScreenHorizontal][IntScreenVertical] = 0;
+			screen[IntScreenHorizontal][IntScreenVertical] = 1;
 		};
 	};
 	for(int IntScreenVertical = halfres; IntScreenVertical < vres; IntScreenVertical++) {
@@ -601,6 +613,38 @@ void renderscreen() {
 	//};
 };
 
+void outputpart(int colour, int lengthy) {
+	string coloutput(lengthy, '#');
+	SetConsoleTextAttribute(hConsole, colour);
+	cout<<coloutput;
+}
+
+void imprenderscreen() {
+	system("CLS");
+	int pixellength = 0;
+	int currentcolour = 0;
+    for(int vlines = 0; vlines <= vres; vlines++) {
+   
+        currentcolour = screen[0][vlines];
+		pixellength = 0;
+		
+        for(int hlines = 0; hlines <= hres; hlines++) {
+
+            if(screen[hlines][vlines] == currentcolour) {
+                pixellength++;
+            };
+			if(screen[hlines][vlines] != currentcolour) {
+                outputpart(currentcolour, pixellength);
+				currentcolour = screen[hlines][vlines];
+				pixellength = 1;
+            };
+		};
+        outputpart(currentcolour, pixellength);
+        cout<<endl;
+    };
+    SetConsoleTextAttribute(hConsole, 1);
+}
+
 void setres() {
 	while(true) {
 	cout<<"please select your resolution\n";
@@ -612,7 +656,8 @@ void setres() {
 	cin>>vres;
 	cout<<"now testing resolution\n";
 	
-	Sleep(3000); //sleep for 3 seconds and then clear screen
+	system("PAUSE");
+	
 	system("CLS");
 	
 	for(int u = 0; u <= vres; u++) {
@@ -628,7 +673,7 @@ void setres() {
 	};
 	SetConsoleTextAttribute(hConsole, 7);
 	
-	Sleep(5000);
+	system("PAUSE");
 	system("CLS");
 	
 
@@ -770,13 +815,13 @@ hres = 156;
 			if(input == 'd') {
 				turnright();
 			};
-            if (input == 'q')
+            if (input == 'q') {
                 break;  // Exit the loop if 'q' is pressed
-            setCursorPosition(0, 0);
+			};
 			
 		
 				composscreen();
-				renderscreen();
+				imprenderscreen();
 				SetConsoleTextAttribute(hConsole, 15);
 			if(input == 'm') {
 			showmap();
