@@ -4,25 +4,64 @@
 #include <thread>
 
 
+
+//game variables
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 using namespace std; //just so i dont need to write std every fucking time
 int hres; //horizontal resolution
 int vres; //vertical resolution
+bool gamerun = true;
+int runtime = 0;
+int prevrun;
+bool rendering = true;
 
 
 
 
-
+//player based variables
 int playerxpos; //x position on the array
 int playerypos; //y position on the array
 char playerfacing[4] = {'n','e','s','w'} //0 for north, 1 for east, 2 for south, 3 for west.
 int targetx; //x position of target
 int targety; //y position of target
-
-
 int guntype[4] = {3,5,7,20,16,0} //first value is damage, second is clip size, third is firing speed, fourth is reload speed, fifth is damage falloff percent, sixth is the model id
 
 
+//rendering templates
+void settempplates() {
+	/*  player fov
+	a[1][2][3]
+	b[ ][ ][ ]
+	c[ ][ ][ ]
+	d[ ][ ][ ]
+	e[ ] p [ ]
+	*/
+	int midx = hres / 2;
+	int midy = vres / 2;
+	//a1 wall/portal tile
+	int westvert = midx / 4;
+	int plcvert = midy / 5;
+	int northvert = midy - plcvert;
+	int eastvert = midx - westvert;
+	int southvert = midy + plcvert;
+	printtotemplate(northvert, eastvert, southvert, westvert, 0, '+');
+	
+	
+	
+};
+
+void printtotemplate(int north, int east, int south, int west, int layer, char character) {
+	for(int i; i <= vres; i++) {
+		for(int o; o <= hres; o++) {
+			if(i >= north && i <= south && o >= west && o <= east) {
+				rendertemplates[i][o][layer] = character;
+			};
+		};
+	};
+}
+	
+	
+	
 
 void lookingat() {
 	bool hitting = false;
@@ -40,7 +79,7 @@ void lookingat() {
 	};
 	break;
 
-	case 'e';
+	case 'e':
 	while(!hitting) {
 		if(map[checky][checkx] == 'e') {
 			checkx++;
@@ -50,7 +89,7 @@ void lookingat() {
 	};
 	break;
 	
-	case 's';
+	case 's':
 	while(!hitting) {
 		if(map[checky][checkx] == 'e') {
 			checky++;
@@ -60,7 +99,7 @@ void lookingat() {
 	};
 	break;
 	
-	case 'w';
+	case 'w':
 	while(!hitting) {
 		if(map[checky][checkx] == 'e') {
 			checkx--;
@@ -79,9 +118,9 @@ void gunlogic() {
 	
 
 
+};
 
 
-bool gamerun = true;
 
 char map[5][5] = {
 	{'w','w','e','w','w'},
@@ -89,10 +128,8 @@ char map[5][5] = {
 	{'e','e','e','e','e'},
 	{'w','w','e','w','w'},
 	{'w','w','w','w','w'}
-}
-	
 };
-bool render1;
+
 
 void engine() {
 	
@@ -106,7 +143,7 @@ void engine() {
 void gameclock() { //runs internal clock to sync everything to
 	bool clockrun = true;
 	while(clockrun) {
-		render1 = true;
+		runtime++;
 		sleep(66);
 	};
 }
@@ -129,16 +166,16 @@ void composscreen() {
 	
 
 
-bool rendering = true;
+
 
 void renderscreen() {
 		while(gamerun) {
-		while(!render1) {
+		while(runtime == prevrun) {
 				sleep(10);
 		};
 		
 		system("CLS");//clears screen
-		render1 = false
+		prevrun = runtime;
 	for(int i = 0; i <= vres; i++) { //renders the entire screen according to the resolution 
 		for(int o = 0; o <= hres; o++) {
 			SetConsoleTextAttribute(hConsole, colours[i][o]);
@@ -209,6 +246,9 @@ int main() {
 	
 	char screen[vres][hres];
 	int colours[vres][hres];
+	
+	//templates init
+	char rendertemplates[vres][hres][14] = {NULL}
     
     while (true) {
         if (_kbhit()) {  // Check if a key has been pressed
@@ -225,9 +265,6 @@ int main() {
         
         // Perform other tasks or update the program state here
     }
-    
-    return 0;
-}
 
 
 
