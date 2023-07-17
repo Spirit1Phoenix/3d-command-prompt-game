@@ -2,6 +2,8 @@
 #include <conio.h>  // Include the conio.h header for _getch() function on Windows
 #include <windows.h>
 #include <thread>
+#include <cmath>
+#include <chrono>
 
 
 
@@ -64,33 +66,26 @@ void settempplates() {
 
 	
 void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool lefteright, int layer, char character) {
-	if(lefteright) {
-		//facing left
-		int tempa = south - north;
-		int tempb = east - west;
-		int tempc;
-		int tempd;
-		int tempe;
-		int tempf;
-		int tempg;
-		if (tempa <= tempb){
-			tempc = tempb / tempa;
-			for(int b = 0; b < tempa; b++) {
-				tempd = north + b; //north part
-				tempe = west + tempc; //east side
-				tempf = vres - tempd; //south side
-				printtotemplate(tempd, tempe, tempf, west, layer, character);
-			};
-		} else {
-			tempc = tempa / tempb;
-			for(int b = 0; b < tempa; b++) {
-				tempd = north + b; //north part
-				tempe = west + tempc; //east side
-				tempf = vres - tempd; //south side
-				printtotemplate(tempd, tempe, tempf, west, layer, character);
-		};
-		};
-		
+	int tempx = east1 - west1;
+	int tempy = south1 - north1;
+	bool inverted;
+	int riseoverrun;
+	if(tempx <= tempy) {
+		riseoverrun = tempy / tempx;
+		inverted = true;
+	} else {
+		riseoverrun = tempx / tempy;
+		inverted = false;
+	};
+	int pythagorusinput1 = pow(tempx, 2);
+	int pythagorusinput2 = pow(tempy, 2);
+	int pythagorusinput3 = pythagorusinput1 + pythagorusinput2;
+	int pythagorusoutput = sqrt(pythagorusinput3);
+	pythagorusinput1 = 0;
+	pythagorusinput2 = 0;
+	pythagorusinput3 = 0;
+	for(int brug = 0; brug <= pythagorusoutput; brug++) {
+		if(
 		
 
 }
@@ -174,8 +169,10 @@ void engine() {
 void gameclock() { //runs internal clock to sync everything to
 	bool clockrun = true;
 	while(clockrun) {
-		runtime++;
-		sleep(66);
+		runtime++;//rising edge
+		this_thread::sleep_for(milliseconds(33));
+		runtime2++;//falling edge
+		this_thread::sleep_for(milliseconds(33));
 	};
 }
 
@@ -279,7 +276,24 @@ int main() {
 	int colours[vres][hres];
 	
 	//templates init
-	char rendertemplates[vres][hres][14] = {NULL}
+	char rendertemplateA1[vres][hres] = {'.'};
+	char rendertemplateA2[vres][hres] = {'.'};
+	char rendertemplateA3[vres][hres] = {'.'};
+	char rendertemplateB1[vres][hres] = {'.'};
+	char rendertemplateB2[vres][hres] = {'.'};
+	char rendertemplateB3[vres][hres] = {'.'};
+	char rendertemplateC1[vres][hres] = {'.'};
+	char rendertemplateC2[vres][hres] = {'.'};
+	char rendertemplateC3[vres][hres] = {'.'};
+	char rendertemplateD1[vres][hres] = {'.'};
+	char rendertemplateD2[vres][hres] = {'.'};
+	char rendertemplateD3[vres][hres] = {'.'};
+	char rendertemplateE1[vres][hres] = {'.'};
+	char rendertemplateE2[vres][hres] = {'.'};
+	char rendertemplateE3[vres][hres] = {'.'};
+	char rendertemplateF1[vres][hres] = {'.'};
+	char rendertemplateF2[vres][hres] = {'.'};
+	char rendertemplateF3[vres][hres] = {'.'};
     engine();
 	
     while (true) {
