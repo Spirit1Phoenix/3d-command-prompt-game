@@ -16,7 +16,7 @@ bool gamerun = true;
 int runtime = 0;
 int prevrun;
 bool rendering = true;
-
+int* selectedarray;
 
 
 
@@ -31,10 +31,84 @@ int guntype[6] = {3,5,7,20,16,0}; //first value is damage, second is clip size, 
 
 
 void printtotemplate(int north, int east, int south, int west, int layer, char character) { //generates template on a specific layer
+	switch(layer) {
+		case 0:
+		selectedarray = rendertemplateA1;
+		break;
+		
+		case 1:
+		selectedarray = rendertemplateA2;
+		break;
+		
+		case 3:
+		selectedarray = rendertemplateA3;
+		break;
+		
+		case 4:
+		selectedarray = rendertemplateB1;
+		break;
+		
+		case 5:
+		selectedarray = rendertemplateB2;
+		break;
+		
+		case 6:
+		selectedarray = rendertemplateB3;
+		break;
+		
+		case 7:
+		selectedarray = rendertemplateC1;
+		break;
+		
+		case 8:
+		selectedarray = rendertemplateC2;
+		break;
+		
+		case 9:
+		selectedarray = rendertemplateC3;
+		break;
+		
+		case 10:
+		selectedarray = rendertemplateD1;
+		break;
+		
+		case 11:
+		selectedarray = rendertemplateD2;
+		break;
+		
+		case 12:
+		selectedarray = rendertemplateD3;
+		break;
+		
+		case 13:
+		selectedarray = rendertemplateE1;
+		break;
+		
+		case 14:
+		selectedarray = rendertemplateE2;
+		break;
+		
+		case 15:
+		selectedarray = rendertemplateE3;
+		break;
+		
+		case 16:
+		selectedarray = rendertemplateF1;
+		break;
+		
+		case 17:
+		selectedarray = rendertemplateF2;
+		break;
+		
+		case 18:
+		selectedarray = rendertemplateF3;
+		break;
+	};
+		
 	for(int i; i <= vres; i++) {
 		for(int o; o <= hres; o++) {
 			if(i >= north && i <= south && o >= west && o <= east) {
-				rendertemplates[i][o][layer] = character;
+				selectedarray[i][o] = character;
 			};
 		};
 	};
@@ -66,16 +140,19 @@ void settempplates() {
 
 	
 void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool lefteright, int layer, char character) {
-	int tempx = east1 - west1;
-	int tempy = south1 - north1;
+	int tempx = east1 - west1;//get x relative position
+	int tempy = south1 - north1;//get y relative position
 	bool inverted;
 	int riseoverrun;
-	if(tempx <= tempy) {
+	if(tempx <= tempy) { //get the amount of 
 		riseoverrun = tempy / tempx;
-		inverted = true;
+		inverted = true; 
+		// if the angle is more down than right
+		
 	} else {
 		riseoverrun = tempx / tempy;
 		inverted = false;
+		// if the angle is more right than down
 	};
 	int pythagorusinput1 = pow(tempx, 2);
 	int pythagorusinput2 = pow(tempy, 2);
@@ -84,9 +161,46 @@ void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool l
 	pythagorusinput1 = 0;
 	pythagorusinput2 = 0;
 	pythagorusinput3 = 0;
+	
 	for(int brug = 0; brug <= pythagorusoutput; brug++) {
-		if(
+		if(lefteright = true) {
+		if(inverted == true) {
+			
+		if(pythagorusinput1 == riseoverrun) {
+			pythagorusinput1 = 0;
+			pythagorusinput2++;
+		};
+		printtotemplate(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer, character)
+		pythagorusinput1++;
+		} else {
+		if(pythagorusinput1 == riseoverrun) {
+			pythagorusinput1 = 0;
+			pythagorusinput2++;
+		};
+		printtotemplate(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer, character)
+		pythagorusinput1++;
+		};
+	};
+	} else {
+		riseoverrun = -riseoverrun
+		if(inverted == true) {
+			
+		if(pythagorusinput1 == riseoverrun) {
+			pythagorusinput1 = 0;
+			pythagorusinput2--;
+		};
+		printtotemplate(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer, character)
+		pythagorusinput1--;
+		} else {
+		if(pythagorusinput1 == riseoverrun) {
+			pythagorusinput1 = 0;
+			pythagorusinput2--;
+		};
+		printtotemplate(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer, character)
+		pythagorusinput1--;
+		};
 		
+	};
 
 }
 
@@ -98,7 +212,7 @@ void lookingat() {
 	switch(playerfacing[face]) {
 	case 'n':
 	while(!hitting) {
-		if(map[checky][checkx] == 'e') {
+		if(gamemap[checky][checkx] == 'e') {
 			checky--;
 		} else {
 			hitting = true;
@@ -108,7 +222,7 @@ void lookingat() {
 
 	case 'e':
 	while(!hitting) {
-		if(map[checky][checkx] == 'e') {
+		if(gamemap[checky][checkx] == 'e') {
 			checkx++;
 		} else {
 			hitting = true;
@@ -118,7 +232,7 @@ void lookingat() {
 	
 	case 's':
 	while(!hitting) {
-		if(map[checky][checkx] == 'e') {
+		if(gamemap[checky][checkx] == 'e') {
 			checky++;
 		} else {
 			hitting = true;
@@ -128,7 +242,7 @@ void lookingat() {
 	
 	case 'w':
 	while(!hitting) {
-		if(map[checky][checkx] == 'e') {
+		if(gamemap[checky][checkx] == 'e') {
 			checkx--;
 		} else {
 			hitting = true;
@@ -149,7 +263,7 @@ void gunlogic() {
 
 
 
-char map[5][5] = {
+char gamemap[5][5] = {
 	{'w','w','e','w','w'},
 	{'w','w','e','w','w'},
 	{'e','e','e','e','e'},
@@ -311,6 +425,7 @@ int main() {
         
         // Perform other tasks or update the program state here
     }
+
 
 
 
