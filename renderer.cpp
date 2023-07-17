@@ -42,6 +42,13 @@ int wallexist[5][4] = {0};
 int checkwallx = 0;
 int checkwally = 0;
 
+void setCursorPosition(int x, int y) {
+    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD pos;
+    pos.X = x;
+    pos.Y = y;
+    SetConsoleCursorPosition(consoleHandle, pos);
+}
 
 int wraparoundcheckshort(int wrapy) {
 	
@@ -103,12 +110,12 @@ void checkwallexist() {
 				wallcheckx = playerxpos + wallchecky2;
 				wallchecky = wraparoundchecklong(wallchecky);
 				wallcheckx = wraparoundcheckshort(wallcheckx);
+				wallexist[wallcheckv][wallcheckh] = 0;
 				if(gamemap[wallcheckx][wallchecky] == 'W') {
 					wallexist[wallcheckv][wallcheckh] = 1;
-				} else if(gamemap[wallcheckx][wallchecky] == '#') {
+				};
+				if(gamemap[wallcheckx][wallchecky] == '#') {
 					wallexist[wallcheckv][wallcheckh] = 2;
-				} else {
-					wallexist[wallcheckv][wallcheckh] = 0;
 				};
 			break;
 			
@@ -117,12 +124,12 @@ void checkwallexist() {
 				wallchecky = playerypos + wallchecky2;
 				wallcheckx = wraparoundchecklong(wallcheckx);
 				wallchecky = wraparoundcheckshort(wallchecky);
+				wallexist[wallcheckv][wallcheckh] = 0;
 				if(gamemap[wallcheckx][wallchecky] == 'W') {
 					wallexist[wallcheckv][wallcheckh] = 1;
-				} else if(gamemap[wallcheckx][wallchecky] == '#') {
+				};
+				if(gamemap[wallcheckx][wallchecky] == '#') {
 					wallexist[wallcheckv][wallcheckh] = 2;
-				} else {
-					wallexist[wallcheckv][wallcheckh] = 0;
 				};
 			break;
 			
@@ -131,12 +138,12 @@ void checkwallexist() {
 				wallcheckx = playerxpos - wallchecky2;
 				wallchecky = wraparoundchecklong(wallchecky);
 				wallcheckx = wraparoundcheckshort(wallcheckx);
+				wallexist[wallcheckv][wallcheckh] = 0;
 				if(gamemap[wallcheckx][wallchecky] == 'W') {
 					wallexist[wallcheckv][wallcheckh] = 1;
-				} else if(gamemap[wallcheckx][wallchecky] == '#') {
+				};
+				if(gamemap[wallcheckx][wallchecky] == '#') {
 					wallexist[wallcheckv][wallcheckh] = 2;
-				} else {
-					wallexist[wallcheckv][wallcheckh] = 0;
 				};
 			break;
 			
@@ -145,12 +152,12 @@ void checkwallexist() {
 				wallchecky = playerypos - wallchecky2;
 				wallcheckx = wraparoundchecklong(wallcheckx);
 				wallchecky = wraparoundcheckshort(wallchecky);
+				wallexist[wallcheckv][wallcheckh] = 0;
 				if(gamemap[wallcheckx][wallchecky] == 'W') {
 					wallexist[wallcheckv][wallcheckh] = 1;
-				} else if(gamemap[wallcheckx][wallchecky] == '#') {
+				};
+				if(gamemap[wallcheckx][wallchecky] == '#') {
 					wallexist[wallcheckv][wallcheckh] = 2;
-				} else {
-					wallexist[wallcheckv][wallcheckh] = 0;
 				};
 			break;
 				
@@ -325,17 +332,17 @@ void settempplates() {
 	int plcvert3 = eastvert;
 	int trapvert1 = northvert;
 	int trapvert2 = eastvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 16, 1); //a2
-	templateprinter(northvert, westvert, southvert, 0, 15, 1); //a1
+	templateprinter(northvert, eastvert, southvert, westvert, 16, 4); //a2
+	templateprinter(northvert, westvert, southvert, 0, 15, 4); //a1
 	//a3 wall/portal tile
 	eastvert = hres - westvert;
 	westvert = midx + westvert;
 	int trapvert3 = westvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 18, 1); //a4
-	templateprinter(northvert, hres, southvert, eastvert, 19, 1); //a5
+	templateprinter(northvert, eastvert, southvert, westvert, 18, 4); //a4
+	templateprinter(northvert, hres, southvert, eastvert, 19, 4); //a5
 	westvert = midx - plcvert2;
 	eastvert = midx + plcvert2;
-	templateprinter(northvert, eastvert, southvert, westvert, 17, 1); //a3
+	templateprinter(northvert, eastvert, southvert, westvert, 17, 4); //a3
 	plcvert = midy / 3.5;
 	plcvert2 = midx / 2.5;
 	westvert = hres / 20;
@@ -343,21 +350,21 @@ void settempplates() {
 	southvert = midy + plcvert;
 	eastvert = midx - plcvert2;
 	int plcvert4 = eastvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 11, 2); //b2
+	templateprinter(northvert, eastvert, southvert, westvert, 11, 4); //b2
 
-	printtraptemplate(eastvert, northvert, trapvert2, trapvert1, 11, true, 3);
-	templateprinter(northvert, westvert, southvert, 0, 10, 2); //b1
+	printtraptemplate(eastvert, northvert, trapvert2, trapvert1, 11, true, 4);
+	templateprinter(northvert, westvert, southvert, 0, 10, 4); //b1
 	
 	trapvert2 = northvert;
 	eastvert = hres - westvert;
 	
 	westvert = midx + plcvert2;
 	int trapvert5 = westvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 13, 2); //b4
-	printtraptemplate(trapvert3, northvert, westvert, trapvert1, 13, false, 3);
-	templateprinter(northvert, hres, southvert, eastvert, 14, 2); //b5
+	templateprinter(northvert, eastvert, southvert, westvert, 13, 4); //b4
+	printtraptemplate(trapvert3, northvert, westvert, trapvert1, 13, false, 4);
+	templateprinter(northvert, hres, southvert, eastvert, 14, 4); //b5
 	trapvert1 = eastvert;
-	templateprinter(northvert, westvert, southvert, plcvert4, 12, 2); //b3
+	templateprinter(northvert, westvert, southvert, plcvert4, 12, 4); //b3
 	
 	plcvert = midy / 2;
 	plcvert2 = midx / 1.3;
@@ -366,16 +373,16 @@ void settempplates() {
 	southvert = midy + plcvert;
 	eastvert = midx - plcvert2;
 	templateprinter(northvert, eastvert, southvert, westvert, 6, 4); // c2
-	printtraptemplate(eastvert, northvert, plcvert4, trapvert2, 6, true, 5);
+	printtraptemplate(eastvert, northvert, plcvert4, trapvert2, 6, true, 4);
 	plcvert3 = eastvert;
 	eastvert = hres;
 	westvert = midx + plcvert2;
 	templateprinter(northvert, eastvert, southvert, westvert, 8, 4); // c4
-	printtraptemplate(trapvert5, northvert, westvert, trapvert2, 8, false, 5);
+	printtraptemplate(trapvert5, northvert, westvert, trapvert2, 8, false, 4);
 	templateprinter(northvert, westvert, southvert, plcvert3, 7, 4); //c3
 	plcvert = midy / 6;
-	printtraptemplate(-1, plcvert, plcvert3, northvert, 1, true, 6); // d2
-	printtraptemplate(westvert, plcvert, hres, northvert, 3, false, 6); //d4
+	printtraptemplate(-1, plcvert, plcvert3, northvert, 1, true, 4); // d2
+	printtraptemplate(westvert, plcvert, hres, northvert, 3, false, 4); //d4
 }
 
 
@@ -453,8 +460,43 @@ void gunlogic() {
 
 
 
-
-
+void loadingscreen() {
+	system("CLS");
+	SetConsoleTextAttribute(hConsole, 7);
+	for(int o = 0; 0 < vres; o++) {
+		for(int i = 0; i < hres; i++) {
+			cout<<" ";
+		};
+	};
+	Sleep(333);
+	system("CLS");	
+	for(int o = 0; 0 < vres; o++) {
+		for(int i = 0; i < hres; i++) {
+			cout<<"=";
+		};
+	};
+	Sleep(333);
+	system("CLS");	
+	for(int o = 0; 0 < vres; o++) {
+		for(int i = 0; i < hres; i++) {
+			cout<<" ";
+		};
+	};
+	Sleep(333);
+	system("CLS");	
+	for(int o = 0; 0 < vres; o++) {
+		for(int i = 0; i < hres; i++) {
+			cout<<"|";
+		};
+	};
+	Sleep(333);
+	system("CLS");
+	for(int o = 0; 0 < vres; o++) {
+		for(int i = 0; i < hres; i++) {
+			cout<<" ";
+		};
+	};
+};
 
 
 
@@ -475,7 +517,7 @@ void applytemplate(int layer, bool overwrite = false) {
 				if(templates[horizontal][vertical][layer] != 0) {
 				screen[horizontal][vertical] = templates[horizontal][vertical][layer];
 				};
-				if(overwrite = true) {
+				if(overwrite == true) {
 				if(templates[horizontal][vertical][layer] != 0) {
 				screen[horizontal][vertical] = 5;
 				};
@@ -659,6 +701,8 @@ void tryforward() {
 	};
 	if(gamemap[playerxpos][playerypos] == '#') {
 		generatemap(playerxpos, playerypos);
+		Sleep(30);
+		loadingscreen();
 	};
 	
 	
@@ -675,7 +719,12 @@ void showmap() {
 			if(gamemap[bob][james] != 'W') {
 				SetConsoleTextAttribute(hConsole, 3);
 			};
+			if(bob == playerxpos&&james == playerypos) {
+				SetConsoleTextAttribute(hConsole, 9);
+				cout<<"p";
+			} else {
 			cout<<gamemap[bob][james];
+			};
 		};
 		cout<<endl;
 	};
@@ -723,7 +772,7 @@ hres = 156;
 			};
             if (input == 'q')
                 break;  // Exit the loop if 'q' is pressed
-            system("CLS");
+            setCursorPosition(0, 0);
 			
 		
 				composscreen();
