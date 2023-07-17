@@ -1,9 +1,10 @@
 #include <iostream>
 #include <conio.h>  // Include the conio.h header for _getch() function on Windows
 #include <windows.h>
-#include <thread>
 #include <cmath>
 #include <chrono>
+#include <time.h>
+#include <thread>
 
 
 
@@ -14,19 +15,101 @@ int hres; //horizontal resolution
 int vres; //vertical resolution
 bool gamerun = true;
 int runtime = 0;
+int runtime2 = 0;
 int prevrun;
 bool rendering = true;
-int* selectedarray;
-
+char (*selectedarray)[100];
+char screen[300][100];
+int colours[300][100];
 
 
 //player based variables
 int playerxpos; //x position on the array
 int playerypos; //y position on the array
+int face;
 char playerfacing[4] = {'n','e','s','w'}; //0 for north, 1 for east, 2 for south, 3 for west.
 int targetx; //x position of target
 int targety; //y position of target
 int guntype[6] = {3,5,7,20,16,0}; //first value is damage, second is clip size, third is firing speed, fourth is reload speed, fifth is damage falloff percent, sixth is the model id
+
+
+
+//templates for rendering
+
+	//templates init
+char rendertemplateA1[300][100];
+char rendertemplateA2[300][100];
+char rendertemplateA3[300][100];
+char rendertemplateB1[300][100];
+char rendertemplateB2[300][100];
+char rendertemplateB3[300][100];
+char rendertemplateC1[300][100];
+char rendertemplateC2[300][100];
+char rendertemplateC3[300][100];
+char rendertemplateD1[300][100];
+char rendertemplateD2[300][100];
+char rendertemplateD3[300][100];
+char rendertemplateE1[300][100];
+char rendertemplateE2[300][100];
+char rendertemplateE3[300][100];
+char rendertemplateF1[300][100];
+char rendertemplateF2[300][100];
+char rendertemplateF3[300][100];
+
+
+
+char gamemap[100][100] = {'w'};
+
+
+void generatemap (int startx, int starty) {
+	//set entire map to walls
+	int snakegen;
+	
+	for(int mapresety = 0; mapresety < 100; mapresety++) {
+		for(int mapresetx = 0; mapresetx < 100; mapresetx++) {
+			gamemap[mapresetx][mapresety] = 'w';
+		};
+	};
+	int nextmovecontrol = 0;
+	int mapx = startx;
+	int mapy = starty;
+	for(int snakeai = 0; snakeai < 100; snakeai++) {
+		snakegen = (rand()%100);
+		
+		if(snakegen < 25) {
+			nextmovecontrol--;
+		} else if(snakegen > 75) {
+			nextmovecontrol++;
+		};
+		
+		if(nextmovecontrol == 4) {
+			nextmovecontrol = 0;
+		} else if(nextmovecontrol == -1) {
+			nextmovecontrol = 3;
+		};
+		
+		switch(nextmovecontrol) {
+			case 0:
+			mapy--;
+			break;
+			
+			case 1:
+			mapx++;
+			break;
+			
+			case 2:
+			mapy++;
+			break;
+			
+			case 3:
+			mapx--;
+			break;
+		};
+		gamemap[mapx][mapy] = ' ';
+	
+};
+}
+
 
 
 
@@ -108,7 +191,7 @@ void printtotemplate(int north, int east, int south, int west, int layer, char c
 	for(int i; i <= vres; i++) {
 		for(int o; o <= hres; o++) {
 			if(i >= north && i <= south && o >= west && o <= east) {
-				selectedarray[i][o] = character;
+				*(*(selectedarray + i) + o) = character;
 			};
 		};
 	};
@@ -170,36 +253,37 @@ void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool l
 			pythagorusinput1 = 0;
 			pythagorusinput2++;
 		};
-		printtotemplate(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer, character)
+		printtotemplate(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer, character);
 		pythagorusinput1++;
 		} else {
 		if(pythagorusinput1 == riseoverrun) {
 			pythagorusinput1 = 0;
 			pythagorusinput2++;
 		};
-		printtotemplate(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer, character)
+		printtotemplate(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer, character);
 		pythagorusinput1++;
 		};
-	};
+	
 	} else {
-		riseoverrun = -riseoverrun
+		riseoverrun = -riseoverrun;
 		if(inverted == true) {
 			
 		if(pythagorusinput1 == riseoverrun) {
 			pythagorusinput1 = 0;
 			pythagorusinput2--;
 		};
-		printtotemplate(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer, character)
+		printtotemplate(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer, character);
 		pythagorusinput1--;
 		} else {
 		if(pythagorusinput1 == riseoverrun) {
 			pythagorusinput1 = 0;
 			pythagorusinput2--;
 		};
-		printtotemplate(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer, character)
+		printtotemplate(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer, character);
 		pythagorusinput1--;
 		};
 		
+	};
 	};
 
 }
@@ -263,13 +347,7 @@ void gunlogic() {
 
 
 
-char gamemap[5][5] = {
-	{'w','w','e','w','w'},
-	{'w','w','e','w','w'},
-	{'e','e','e','e','e'},
-	{'w','w','e','w','w'},
-	{'w','w','w','w','w'}
-};
+
 
 
 void engine() {
@@ -284,9 +362,9 @@ void gameclock() { //runs internal clock to sync everything to
 	bool clockrun = true;
 	while(clockrun) {
 		runtime++;//rising edge
-		this_thread::sleep_for(milliseconds(33));
+		this_thread::sleep_for(chrono::milliseconds(33));
 		runtime2++;//falling edge
-		this_thread::sleep_for(milliseconds(33));
+		this_thread::sleep_for(chrono::milliseconds(33));
 	};
 }
 
@@ -378,38 +456,22 @@ void setres() {
 
 int main() {
     char input;
-	
+
 	setres();
 
     
     std::cout << "Type any key. Press 'q' to quit." << std::endl;
 	
+
 	
-	
-	char screen[vres][hres];
-	int colours[vres][hres];
-	
-	//templates init
-	char rendertemplateA1[vres][hres] = {'.'};
-	char rendertemplateA2[vres][hres] = {'.'};
-	char rendertemplateA3[vres][hres] = {'.'};
-	char rendertemplateB1[vres][hres] = {'.'};
-	char rendertemplateB2[vres][hres] = {'.'};
-	char rendertemplateB3[vres][hres] = {'.'};
-	char rendertemplateC1[vres][hres] = {'.'};
-	char rendertemplateC2[vres][hres] = {'.'};
-	char rendertemplateC3[vres][hres] = {'.'};
-	char rendertemplateD1[vres][hres] = {'.'};
-	char rendertemplateD2[vres][hres] = {'.'};
-	char rendertemplateD3[vres][hres] = {'.'};
-	char rendertemplateE1[vres][hres] = {'.'};
-	char rendertemplateE2[vres][hres] = {'.'};
-	char rendertemplateE3[vres][hres] = {'.'};
-	char rendertemplateF1[vres][hres] = {'.'};
-	char rendertemplateF2[vres][hres] = {'.'};
-	char rendertemplateF3[vres][hres] = {'.'};
-    engine();
-	
+
+    generatemap(10, 10);
+	for(int james = 0; james < 100; james++) {
+		for( int bob = 0; bob < 100; bob++) {
+			cout<<gamemap[bob][james];
+		};
+		cout<<endl;
+	};
     while (true) {
         if (_kbhit()) {  // Check if a key has been pressed
             input = _getch();  // Read the key that was pressed
