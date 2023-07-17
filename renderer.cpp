@@ -9,7 +9,7 @@
 
 
 //templates for rendering
-int templates[300][100][13] = {0};
+int templates[300][100][20] = {0};
 
 //game variables
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -22,27 +22,146 @@ int runtime = 0;
 int runtime2 = 0;
 int prevrun;
 bool rendering = true;
-char screen[300][100];
-int colours[300][100];
-	int mapx;
-	int mapy;
+int screen[300][100];
+char gamemap[50][50] = {'w'};
+int mapx;
+int mapy;
 
 
 //player based variables
 int playerxpos; //x position on the array
 int playerypos; //y position on the array
-int face;
+int face = 0;
 char playerfacing[4] = {'n','e','s','w'}; //0 for north, 1 for east, 2 for south, 3 for west.
 int targetx; //x position of target
 int targety; //y position of target
 int guntype[6] = {3,5,7,20,16,0}; //first value is damage, second is clip size, third is firing speed, fourth is reload speed, fifth is damage falloff percent, sixth is the model id
 
+//render based variables
+int wallexist[5][4] = {0};
+int checkwallx = 0;
+int checkwally = 0;
 
 
+int wraparoundcheckshort(int wrapy) {
+	
+	if(wrapy == 3) {
+	wrapy = 45;
+	} else if(wrapy == 2) {
+		wrapy = 44;
+	} else if(wrapy == 46) {
+		wrapy = 4;
+	} else if(wrapy == 47) {
+		wrapy = 5;
+	};
+	return wrapy;
+}
+
+int wraparoundchecklong(int wrap) {
+	switch(wrap) {
+		case 3:
+		wrap = 45;
+		break;
+		case 2:
+		wrap = 44;
+		break;
+		case 1:
+		wrap = 43;
+		break;
+		case 0:
+		wrap = 42;
+		break;
+		case 46:
+		wrap = 4;
+		break;
+		case 47:
+		wrap = 5;
+		break;
+		case 48:
+		wrap = 6;
+		break;
+		case 49:
+		wrap = 7;
+		break;
+		default:
+		wrap = wrap;
+		break;
+	};
+	return wrap;	
+}
+
+void checkwallexist() {
+	for(int wallcheckv = 0; wallcheckv < 5; wallcheckv++) {
+		for(int wallcheckh = 0; wallcheckh < 4; wallcheckh++) {
+			int wallchecky2 = wallcheckv - 2;
+			int wallcheckx;
+			int wallchecky;
+			switch(face) {
+			
+			case 0:
+				wallchecky = playerypos - wallcheckh;
+				wallcheckx = playerxpos + wallchecky2;
+				wallchecky = wraparoundchecklong(wallchecky);
+				wallcheckx = wraparoundcheckshort(wallcheckx);
+				if(gamemap[wallcheckx][wallchecky] == 'W') {
+					wallexist[wallcheckv][wallcheckh] = 1;
+				} else if(gamemap[wallcheckx][wallchecky] == '#') {
+					wallexist[wallcheckv][wallcheckh] = 2;
+				} else {
+					wallexist[wallcheckv][wallcheckh] = 0;
+				};
+			break;
+			
+			case 1:
+				wallcheckx = playerxpos + wallcheckh;
+				wallchecky = playerypos + wallchecky2;
+				wallcheckx = wraparoundchecklong(wallcheckx);
+				wallchecky = wraparoundcheckshort(wallchecky);
+				if(gamemap[wallcheckx][wallchecky] == 'W') {
+					wallexist[wallcheckv][wallcheckh] = 1;
+				} else if(gamemap[wallcheckx][wallchecky] == '#') {
+					wallexist[wallcheckv][wallcheckh] = 2;
+				} else {
+					wallexist[wallcheckv][wallcheckh] = 0;
+				};
+			break;
+			
+			case 2:
+				wallchecky = playerypos + wallcheckh;
+				wallcheckx = playerxpos - wallchecky2;
+				wallchecky = wraparoundchecklong(wallchecky);
+				wallcheckx = wraparoundcheckshort(wallcheckx);
+				if(gamemap[wallcheckx][wallchecky] == 'W') {
+					wallexist[wallcheckv][wallcheckh] = 1;
+				} else if(gamemap[wallcheckx][wallchecky] == '#') {
+					wallexist[wallcheckv][wallcheckh] = 2;
+				} else {
+					wallexist[wallcheckv][wallcheckh] = 0;
+				};
+			break;
+			
+			case 3:
+				wallcheckx = playerxpos - wallcheckh;
+				wallchecky = playerypos - wallchecky2;
+				wallcheckx = wraparoundchecklong(wallcheckx);
+				wallchecky = wraparoundcheckshort(wallchecky);
+				if(gamemap[wallcheckx][wallchecky] == 'W') {
+					wallexist[wallcheckv][wallcheckh] = 1;
+				} else if(gamemap[wallcheckx][wallchecky] == '#') {
+					wallexist[wallcheckv][wallcheckh] = 2;
+				} else {
+					wallexist[wallcheckv][wallcheckh] = 0;
+				};
+			break;
+				
+			};
+		};
+	};
+	
+	
+}
 
 
-
-char gamemap[50][50] = {'w'};
 
 void log(const std::string& message) { //chatgpt logging base
     std::ofstream logfile("log.txt", std::ios::app);  // Open log file in append mode
@@ -70,7 +189,7 @@ void generatemap (int startx, int starty) {
 	mapy = starty;
 	mapx = startx;
 
-	for(int snakeai = 0; snakeai < 100; snakeai++) {
+	for(int snakeai = 0; snakeai < 10; snakeai++) {
 		snakegen = (rand()%100);
 		snakelengthrand = 0;
 		
@@ -106,12 +225,6 @@ void generatemap (int startx, int starty) {
 			mapx--;
 			break;
 		};
-		log("x coord");
-		snakexy = to_string(mapx);
-		log(snakexy);
-		log("y coord");
-		snakexy = to_string(mapy);
-		log(snakexy);
 		if(mapx >=46) {
 			mapx = 4;
 		} else if(mapx <= 3) {
@@ -141,7 +254,6 @@ void templateprinter(int north, int east, int south, int west, int layer, int co
 	};
 };
 
-
 void printtraptemplate(int x1, int y1, int x2, int y2, int layer2, bool updown, int coloursel) {
 	bool invert = false;
 	int tempx = x2 - x1;
@@ -151,22 +263,15 @@ void printtraptemplate(int x1, int y1, int x2, int y2, int layer2, bool updown, 
 	int secondary = 0;
 	int eastern = x2;
 	int western = x1;
-	cout<<"western:"<<western<<endl;
 	if(tempx <= tempy) {
 		xovery = tempy / tempx;
 		invert = true;
 	};
 	int pythagorusoutput = (sqrt((pow(tempx, 2)) + (pow(tempy, 2)))) - 1;
 	int seconddown = 1;
-	cout<<"tempx:"<<tempx<<endl;
-	cout<<"tempy:"<<tempy<<endl;
-	cout<<"xovery:"<<xovery<<endl;
-	cout<<"pythagorusoutput:"<<pythagorusoutput<<endl;
-	cout<<"inverted:"<<invert<<endl;
 	if(updown == true) {
 		if(invert == false) {
 			for(int bruh = 0; bruh < pythagorusoutput; bruh++) {
-	cout<<"bruh:"<<bruh<<endl;
 
 	
 				if(secondary == xovery) {
@@ -179,10 +284,6 @@ void printtraptemplate(int x1, int y1, int x2, int y2, int layer2, bool updown, 
 				
 				templateprinter(frot, western, balls, western, layer2, coloursel);
 				secondary++;
-					cout<<"frot:"<<frot<<endl;
-	cout<<"balls:"<<balls<<endl;
-	cout<<"western:"<<western<<endl;
-	cout<<"secondary:"<<secondary<<endl;
 			};
 		};
 	} else {
@@ -207,9 +308,9 @@ void settempplates() {
 	cout<<"setting templates\n";
 	/*  player fov
 	a[1][2][3][4][5]
-	b   [ ][ ][ ]
-	c   [ ][ ][ ]
-	d   [ ][ ][ ]
+	b[6][7][8][9][0]
+	c[1][2][3][4][5]
+	d[1][2][p][4][5]
 	e   [ ] p [ ]
 	*/
 	int midx = hres / 2;
@@ -224,17 +325,17 @@ void settempplates() {
 	int plcvert3 = eastvert;
 	int trapvert1 = northvert;
 	int trapvert2 = eastvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 0, 1); //a2
-	templateprinter(northvert, westvert, southvert, 0, 3, 1); //a1
+	templateprinter(northvert, eastvert, southvert, westvert, 16, 1); //a2
+	templateprinter(northvert, westvert, southvert, 0, 15, 1); //a1
 	//a3 wall/portal tile
 	eastvert = hres - westvert;
 	westvert = midx + westvert;
 	int trapvert3 = westvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 1, 1); //a4
-	templateprinter(northvert, hres, southvert, eastvert, 4, 1); //a5
+	templateprinter(northvert, eastvert, southvert, westvert, 18, 1); //a4
+	templateprinter(northvert, hres, southvert, eastvert, 19, 1); //a5
 	westvert = midx - plcvert2;
 	eastvert = midx + plcvert2;
-	templateprinter(northvert, eastvert, southvert, westvert, 2, 1); //a3
+	templateprinter(northvert, eastvert, southvert, westvert, 17, 1); //a3
 	plcvert = midy / 3.5;
 	plcvert2 = midx / 2.5;
 	westvert = hres / 20;
@@ -242,18 +343,39 @@ void settempplates() {
 	southvert = midy + plcvert;
 	eastvert = midx - plcvert2;
 	int plcvert4 = eastvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 5, 2); //b2
-	
-	printtraptemplate(eastvert, northvert, trapvert2, trapvert1, 5, true, 3);
+	templateprinter(northvert, eastvert, southvert, westvert, 11, 2); //b2
+
+	printtraptemplate(eastvert, northvert, trapvert2, trapvert1, 11, true, 3);
+	templateprinter(northvert, westvert, southvert, 0, 10, 2); //b1
 	
 	trapvert2 = northvert;
 	eastvert = hres - westvert;
-	westvert = midx + plcvert2;
-	templateprinter(northvert, eastvert, southvert, westvert, 6, 2); //b4
-	printtraptemplate(trapvert3, northvert, westvert, trapvert1, 6, false, 3);
-	trapvert1 = eastvert;
-	templateprinter(northvert, westvert, southvert, plcvert, 7, 2); //b3
 	
+	westvert = midx + plcvert2;
+	int trapvert5 = westvert;
+	templateprinter(northvert, eastvert, southvert, westvert, 13, 2); //b4
+	printtraptemplate(trapvert3, northvert, westvert, trapvert1, 13, false, 3);
+	templateprinter(northvert, hres, southvert, eastvert, 14, 2); //b5
+	trapvert1 = eastvert;
+	templateprinter(northvert, westvert, southvert, plcvert4, 12, 2); //b3
+	
+	plcvert = midy / 2;
+	plcvert2 = midx / 1.3;
+	westvert = 0;
+	northvert = midy - plcvert;
+	southvert = midy + plcvert;
+	eastvert = midx - plcvert2;
+	templateprinter(northvert, eastvert, southvert, westvert, 6, 4); // c2
+	printtraptemplate(eastvert, northvert, plcvert4, trapvert2, 6, true, 5);
+	plcvert3 = eastvert;
+	eastvert = hres;
+	westvert = midx + plcvert2;
+	templateprinter(northvert, eastvert, southvert, westvert, 8, 4); // c4
+	printtraptemplate(trapvert5, northvert, westvert, trapvert2, 8, false, 5);
+	templateprinter(northvert, westvert, southvert, plcvert3, 7, 4); //c3
+	plcvert = midy / 6;
+	printtraptemplate(-1, plcvert, plcvert3, northvert, 1, true, 6); // d2
+	printtraptemplate(westvert, plcvert, hres, northvert, 3, false, 6); //d4
 }
 
 
@@ -347,20 +469,71 @@ void gameclock() { //runs internal clock to sync everything to
 	};
 }
 
-
-void composscreen() {
-	
-	//resets internal screen to entirely transparent + black
-	for(int IntScreenVertical = 0; IntScreenVertical <= vres; IntScreenVertical++) {
-		for(int IntScreenHorizontal = 0; IntScreenHorizontal<= hres; IntScreenHorizontal++) {
-			screen[IntScreenVertical][IntScreenHorizontal] = ' ';
-			colours[IntScreenVertical][IntScreenHorizontal] = 0;
+void applytemplate(int layer, bool overwrite = false) {
+	for(int vertical = 0; vertical < vres; vertical++) {
+		for(int horizontal = 0; horizontal < hres; horizontal++) {
+				if(templates[horizontal][vertical][layer] != 0) {
+				screen[horizontal][vertical] = templates[horizontal][vertical][layer];
+				};
+				if(overwrite = true) {
+				if(templates[horizontal][vertical][layer] != 0) {
+				screen[horizontal][vertical] = 5;
+				};
+			}
+			};
 		};
 	};
+
+
+void composscreen() {
+	int halfvres = vres / 2;
+	int halfres = vres - halfvres;
+	//resets internal screen to entirely transparent + black
+	for(int IntScreenVertical = 0; IntScreenVertical < vres; IntScreenVertical++) {
+		for(int IntScreenHorizontal = 0; IntScreenHorizontal< hres; IntScreenHorizontal++) {
+			screen[IntScreenHorizontal][IntScreenVertical] = 0;
+		};
+	};
+	for(int IntScreenVertical = halfres; IntScreenVertical < vres; IntScreenVertical++) {
+		for(int IntScreenHorizontal = 0; IntScreenHorizontal < hres; IntScreenHorizontal++) {
+			screen[IntScreenHorizontal][IntScreenVertical] = 11;
+		};
+	};
+	checkwallexist();
+	for(int longside = 3; longside >= 0; longside--) {
+		int addtotemplate = 5 * longside;
+		int templateselect = addtotemplate + 0;
+		if(wallexist[0][longside] == 1) { //p1
+			applytemplate(templateselect);
+		}else if(wallexist[0][longside] == 2) {
+			applytemplate(templateselect, true);
+		};
+		templateselect = addtotemplate + 4;
+		if(wallexist[4][longside] == 1) { //p5
+			applytemplate(templateselect);
+		} else if(wallexist[4][longside] == 2) {
+			applytemplate(templateselect, true);
+		};
+		templateselect = addtotemplate + 1;
+		if(wallexist[1][longside] == 1) { //p2
+			applytemplate(templateselect);
+		} else if(wallexist[1][longside] == 2) {
+			applytemplate(templateselect, true);
+		};
+		templateselect = addtotemplate + 3;
+		if(wallexist[3][longside] == 1) { //p4
+			applytemplate(templateselect);
+		}else if(wallexist[3][longside] == 2) {
+			applytemplate(templateselect, true);
+		};
+		templateselect = addtotemplate + 2;
+		if(wallexist[2][longside] == 1) { //p3
+			applytemplate(templateselect);
+		} else if(wallexist[2][longside] == 2) {
+			applytemplate(templateselect, true);
+		};
 	
-	
-	
-	
+	};
 }
 	
 
@@ -368,22 +541,22 @@ void composscreen() {
 
 
 void renderscreen() {
-		while(gamerun) {
+		/*while(gamerun) {
 		while(runtime == prevrun) {
 				this_thread::sleep_for(chrono::milliseconds(10));
 		};
-		
+		*/
 		system("CLS");//clears screen
 		prevrun = runtime;
-	for(int i = 0; i <= vres; i++) { //renders the entire screen according to the resolution 
-		for(int o = 0; o <= hres; o++) {
-			SetConsoleTextAttribute(hConsole, colours[i][o]);
-			cout<<screen[i][o];
+	for(int breen = 0; breen <= vres; breen++) { //renders the entire screen according to the resolution 
+		for(int brug = 0; brug <= hres; brug++) {
+			SetConsoleTextAttribute(hConsole, screen[brug][breen]);
+			cout<<"#";
 		};
 		cout<<endl;
 		};
 
-	};
+	//};
 };
 
 void setres() {
@@ -434,59 +607,136 @@ void engine() {
 	thread externalscr(renderscreen);
 	thread internalscr(composscreen);
 };
+
+void turnleft() {
+	face--;
+	if(face < 0) {
+		face = 3;
+	};
+}
+
+void turnright() {
+	face++;
+	if(face > 3) {
+		face = 0;
+	};
+}
+	
+void tryforward() {
+	int tempplayerx = playerxpos;
+	int tempplayery = playerypos;
+	switch(face) {
+		case 0:
+		tempplayery--;
+		break;
+		
+		case 1:
+		tempplayerx++;
+		break;
+		
+		case 2:
+		tempplayery++;
+		break;
+		
+		case 3:
+		tempplayerx--;
+		break;
+	};
+	if(tempplayerx == 3) {
+		tempplayerx = 45;
+	} else if(tempplayerx == 46) {
+		tempplayerx = 4;
+	};
+	if(tempplayery == 3) {
+		tempplayery = 45;
+	} else if(tempplayery == 46) {
+		tempplayery = 4;
+	};
+	
+	if(gamemap[tempplayerx][tempplayery] != 'W') {
+	playerxpos = tempplayerx;
+	playerypos = tempplayery;
+	};
+	if(gamemap[playerxpos][playerypos] == '#') {
+		generatemap(playerxpos, playerypos);
+	};
 	
 	
+}
+
+void showmap() {
+	system("CLS");
+	for(int james = 0; james < 50; james++) {
+		for( int bob = 0; bob < 50; bob++) {
+			SetConsoleTextAttribute(hConsole, 4);
+			if(bob == 3||bob == 46||james == 3||james == 46) {
+				SetConsoleTextAttribute(hConsole, 5);
+			};
+			if(gamemap[bob][james] != 'W') {
+				SetConsoleTextAttribute(hConsole, 3);
+			};
+			cout<<gamemap[bob][james];
+		};
+		cout<<endl;
+	};
+	cout<<"portal is at "<<mapx<<", "<<mapy<<endl;
+};
 
 
 int main() {
     char input;
-
-
-	//setres();
-vres = 28;
-hres = 118;
-    system("PAUSE");
+vres = 40;
+hres = 156;
+    setres();
 	auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Type any key. Press 'q' to quit." << std::endl;
 	system("CLS");
 	srand(time(NULL));
 	
 	settempplates();
-    //generatemap(25, 25);
-	for(int harold = 0; harold < 13; harold++) {
-	for(int james = 0; james < vres; james++) {
-		for( int bob = 0; bob < hres; bob++) {
-			/*SetConsoleTextAttribute(hConsole, 4);
-			if(bob == 3||bob == 46||james == 3||james == 46) {
-				SetConsoleTextAttribute(hConsole, 5);
-			};
-			if(gamemap[bob][james] != 'W') {
-				SetConsoleTextAttribute(hConsole, 3);
-			}; */
-			cout<<templates[bob][james][harold];
-		};
-		cout<<endl;
-	};
-	cout<<endl<<endl;
-	};
-	cout<<"portal is at "<<mapx<<", "<<mapy<<endl;
+    generatemap(25, 25);
+	playerxpos = 25;
+	playerypos = 25;
+	
+	
+	
+
+	
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end - start;
 	std::cout << "Execution time: " << duration.count() << " seconds" << std::endl;
 	
+	cout<<"press any button to continue"<<endl;
+	
 	system("PAUSE");
-    /*while (true) {
+    while (true) {
         if (_kbhit()) {  // Check if a key has been pressed
             input = _getch();  // Read the key that was pressed
-            
+            if(input == 'w') {
+				tryforward();
+			};
+			if(input == 'a') {
+				turnleft();
+			};
+			if(input == 'd') {
+				turnright();
+			};
             if (input == 'q')
                 break;  // Exit the loop if 'q' is pressed
             system("CLS");
+			
+		
+				composscreen();
+				renderscreen();
+				SetConsoleTextAttribute(hConsole, 15);
+			if(input == 'm') {
+			showmap();
+			};
+				cout<<"facing: "<<playerfacing[face]<<"   x = "<<playerxpos<<"   y = "<<playerypos;
 		};
-            std::cout << "You pressed: " << input << endl;
 			
         }
-		*/
+		
         
         // Perform other tasks or update the program state here
     }
