@@ -10,22 +10,86 @@ int hres; //horizontal resolution
 int vres; //vertical resolution
 
 
-int playerxpos;
-int playerypos;
+
+
+
+int playerxpos; //x position on the array
+int playerypos; //y position on the array
+char playerfacing[4] = {'n','e','s','w'} //0 for north, 1 for east, 2 for south, 3 for west.
+int targetx; //x position of target
+int targety; //y position of target
+
+
+int guntype[4] = {3,5,7,20,16,0} //first value is damage, second is clip size, third is firing speed, fourth is reload speed, fifth is damage falloff percent, sixth is the model id
+
+
+
+void lookingat() {
+	bool hitting = false;
+	int checkx = playerxpos;
+	int checky = playerypos;
+	
+	switch(playerfacing[face]) {
+	case 'n':
+	while(!hitting) {
+		if(map[checky][checkx] == 'e') {
+			checky--;
+		} else {
+			hitting = true;
+		};
+	};
+	break;
+
+	case 'e';
+	while(!hitting) {
+		if(map[checky][checkx] == 'e') {
+			checkx++;
+		} else {
+			hitting = true;
+		};
+	};
+	break;
+	
+	case 's';
+	while(!hitting) {
+		if(map[checky][checkx] == 'e') {
+			checky++;
+		} else {
+			hitting = true;
+		};
+	};
+	break;
+	
+	case 'w';
+	while(!hitting) {
+		if(map[checky][checkx] == 'e') {
+			checkx--;
+		} else {
+			hitting = true;
+		};
+	};
+	break;
+	};
+	
+	targetx = checkx;
+	targety = checky;
+};
+
+void gunlogic() {
+	
+
+
+
 
 bool gamerun = true;
 
-char map[5][5][2] = {{
+char map[5][5] = {
 	{'w','w','e','w','w'},
 	{'w','w','e','w','w'},
 	{'e','e','e','e','e'},
 	{'w','w','e','w','w'},
-	{'w','w','w','w','w'}},
-	{{' ',' ','a',' ',' '},
-	{' ',' ',' ',' ',' '},
-	{' ',' ',' ',' ','m'},
-	{' ',' ',' ',' ',' '},
-	{' ',' ',' ',' ',' '}}
+	{'w','w','w','w','w'}
+}
 	
 };
 bool render1;
@@ -164,3 +228,14 @@ int main() {
     
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+//raptley if you are reading this i love you <3
