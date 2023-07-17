@@ -16,6 +16,7 @@ HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 using namespace std; //just so i dont need to write std every fucking time
 int hres; //horizontal resolution
 int vres; //vertical resolution
+int pracvres;
 bool gamerun = true;
 int runtime = 0;
 int runtime2 = 0;
@@ -130,106 +131,76 @@ gamemap[startx][starty] = 's';
 }
 
 
-void templateprinter(int north, int east, int south, int west, int layer) {
+void templateprinter(int north, int east, int south, int west, int layer, int colourselect) {
 	for(int o = 0; o < vres; o++) {
 		for(int i = 0; i < hres; i++) {
 			if(i <= east && i >= west && o <= south && o >= north) {
-				templates[i][o][layer] = 1;
+				templates[i][o][layer] = colourselect;
 			};
 		};
 	};
 };
 
 
-void printtraptemplate(int x1, int y1, int x2, int y2, int layer2) {
+void printtraptemplate(int x1, int y1, int x2, int y2, int layer2, bool updown, int coloursel) {
+	bool invert = false;
 	int tempx = x2 - x1;
 	int tempy = y2 - y1;
-	int xovery;
+	int xovery = tempx / tempy;
+	int northern = y1;
+	int secondary = 0;
+	int eastern = x2;
+	int western = x1;
+	cout<<"western:"<<western<<endl;
+	if(tempx <= tempy) {
+		xovery = tempy / tempx;
+		invert = true;
+	};
+	int pythagorusoutput = (sqrt((pow(tempx, 2)) + (pow(tempy, 2)))) - 1;
+	int seconddown = 1;
+	cout<<"tempx:"<<tempx<<endl;
+	cout<<"tempy:"<<tempy<<endl;
+	cout<<"xovery:"<<xovery<<endl;
+	cout<<"pythagorusoutput:"<<pythagorusoutput<<endl;
+	cout<<"inverted:"<<invert<<endl;
+	if(updown == true) {
+		if(invert == false) {
+			for(int bruh = 0; bruh < pythagorusoutput; bruh++) {
+	cout<<"bruh:"<<bruh<<endl;
+
+	
+				if(secondary == xovery) {
+					seconddown++;
+					secondary = 0;
+				};
+				int frot = northern + seconddown;
+				int balls = vres - frot;
+				western++;
+				
+				templateprinter(frot, western, balls, western, layer2, coloursel);
+				secondary++;
+					cout<<"frot:"<<frot<<endl;
+	cout<<"balls:"<<balls<<endl;
+	cout<<"western:"<<western<<endl;
+	cout<<"secondary:"<<secondary<<endl;
+			};
+		};
+	} else {
+		for(int bruh = 0; bruh < pythagorusoutput; bruh++) {
+			if(secondary == xovery) {
+				seconddown++;
+				secondary = 0;
+			};
+			int frot = northern + seconddown;
+			int balls = vres - frot;
+			eastern--;
+			templateprinter(frot, eastern, balls, eastern, layer2, coloursel);
+			secondary++;
+		};
+	};
+		
 	
 }
-
-void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool lefteright, int layer1) {
-	int tempx = east1 - west1;//get x relative position
-	int tempy = south1 - north1;//get y relative position
-	bool inverted;
-	int rise;
-	
-	if(tempx > tempy) { //get the amount of 
-		rise = (tempx / tempy);
-		inverted = false; 
-		// if the angle is more down than right
-		
-	} else {
-		rise = (tempy / tempx);
-		inverted = true;
-		// if the angle is more right than down
-	};
-	int pythagorusinput1 = pow(tempx, 2);
-	int pythagorusinput2 = pow(tempy, 2);
-	int pythagorusinput3 = pythagorusinput1 + pythagorusinput2;
-	int pythagorusoutput = sqrt(pythagorusinput3);
-	pythagorusinput1 = 0;
-	pythagorusinput2 = 0;
-	pythagorusinput3 = 0;
-	cout<<pythagorusoutput<<endl;
-	if(lefteright = false) {
-	for(int brug = 0; brug <= pythagorusoutput; brug++) {
-		cout<<"tempx:"<<tempx<<endl;
-		cout<<"tempy:"<<tempy<<endl;
-		cout<<"rise over run:"<<rise<<endl;
-		cout<<"output 1:"<<pythagorusinput1<<endl;
-		cout<<"output 2:"<<pythagorusinput2<<endl;
-		cout<<"output 3:"<<pythagorusinput3<<endl;
-		if(inverted == true) {
-			
-		if(pythagorusinput1 == rise) {
-			pythagorusinput1 = 0;
-			pythagorusinput2++;
-		};
-		templateprinter(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer1);
-		pythagorusinput1++;
-		} else {
-		if(pythagorusinput1 == rise) {
-			pythagorusinput1 = 0;
-			pythagorusinput2++;
-		};
-		templateprinter(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer1);
-		pythagorusinput1++;
-		};
-	};
-	
-	} else {
-		rise = -rise;
-		for(int brug = 0; brug <= pythagorusoutput; brug++) {
-			
-				cout<<"tempx:"<<tempx<<endl;
-		cout<<"tempy:"<<tempy<<endl;
-		cout<<"rise over run:"<<rise<<endl;
-		cout<<"output 1:"<<pythagorusinput1<<endl;
-		cout<<"output 2:"<<pythagorusinput2<<endl;
-		cout<<"output 3:"<<pythagorusinput3<<endl;
-		if(inverted == true) {
-			
-		if(pythagorusinput1 == rise) {
-			pythagorusinput1 = 0;
-			pythagorusinput2--;
-		};
-		templateprinter(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer1);
-		pythagorusinput1--;
-		} else {
-		if(pythagorusinput1 == rise) {
-			pythagorusinput1 = 0;
-			pythagorusinput2--;
-		};
-		templateprinter(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer1);
-		pythagorusinput1--;
-		};
-		
-	};
-	};
-
-}
-
 
 //rendering templates
 void settempplates() {
@@ -253,27 +224,35 @@ void settempplates() {
 	int plcvert3 = eastvert;
 	int trapvert1 = northvert;
 	int trapvert2 = eastvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 0); //a2
-	templateprinter(northvert, westvert, southvert, 0, 3); //a1
+	templateprinter(northvert, eastvert, southvert, westvert, 0, 1); //a2
+	templateprinter(northvert, westvert, southvert, 0, 3, 1); //a1
 	//a3 wall/portal tile
 	eastvert = hres - westvert;
 	westvert = midx + westvert;
 	int trapvert3 = westvert;
-	templateprinter(northvert, eastvert, southvert, westvert, 1); //a4
-	templateprinter(northvert, hres, southvert, eastvert, 4); //a5
+	templateprinter(northvert, eastvert, southvert, westvert, 1, 1); //a4
+	templateprinter(northvert, hres, southvert, eastvert, 4, 1); //a5
 	westvert = midx - plcvert2;
 	eastvert = midx + plcvert2;
-	templateprinter(northvert, eastvert, southvert, westvert, 2); //a3
+	templateprinter(northvert, eastvert, southvert, westvert, 2, 1); //a3
 	plcvert = midy / 3.5;
 	plcvert2 = midx / 2.5;
 	westvert = hres / 20;
 	northvert = midy - plcvert;
 	southvert = midy + plcvert;
 	eastvert = midx - plcvert2;
-	templateprinter(northvert, eastvert, southvert, westvert, 5); //b2
-	printtrapezoidtemplate(northvert, trapvert2, trapvert1, eastvert, true, 5);
+	int plcvert4 = eastvert;
+	templateprinter(northvert, eastvert, southvert, westvert, 5, 2); //b2
 	
+	printtraptemplate(eastvert, northvert, trapvert2, trapvert1, 5, true, 3);
 	
+	trapvert2 = northvert;
+	eastvert = hres - westvert;
+	westvert = midx + plcvert2;
+	templateprinter(northvert, eastvert, southvert, westvert, 6, 2); //b4
+	printtraptemplate(trapvert3, northvert, westvert, trapvert1, 6, false, 3);
+	trapvert1 = eastvert;
+	templateprinter(northvert, westvert, southvert, plcvert, 7, 2); //b3
 	
 }
 
@@ -464,8 +443,8 @@ int main() {
 
 
 	//setres();
-vres = 43;
-hres = 168;
+vres = 28;
+hres = 118;
     system("PAUSE");
 	auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Type any key. Press 'q' to quit." << std::endl;
