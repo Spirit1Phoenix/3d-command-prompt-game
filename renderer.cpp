@@ -8,6 +8,8 @@
 #include <fstream>
 
 
+//templates for rendering
+int templates[300][100][13] = {0};
 
 //game variables
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -19,7 +21,6 @@ int runtime = 0;
 int runtime2 = 0;
 int prevrun;
 bool rendering = true;
-char (*selectedarray)[100];
 char screen[300][100];
 int colours[300][100];
 	int mapx;
@@ -37,27 +38,6 @@ int guntype[6] = {3,5,7,20,16,0}; //first value is damage, second is clip size, 
 
 
 
-//templates for rendering
-
-	//templates init
-char rendertemplateA1[300][100];
-char rendertemplateA2[300][100];
-char rendertemplateA3[300][100];
-char rendertemplateB1[300][100];
-char rendertemplateB2[300][100];
-char rendertemplateB3[300][100];
-char rendertemplateC1[300][100];
-char rendertemplateC2[300][100];
-char rendertemplateC3[300][100];
-char rendertemplateD1[300][100];
-char rendertemplateD2[300][100];
-char rendertemplateD3[300][100];
-char rendertemplateE1[300][100];
-char rendertemplateE2[300][100];
-char rendertemplateE3[300][100];
-char rendertemplateF1[300][100];
-char rendertemplateF2[300][100];
-char rendertemplateF3[300][100];
 
 
 
@@ -112,12 +92,10 @@ void generatemap (int startx, int starty) {
 			case 0:
 			mapy--;
 			break;
-			
-		if(mapx != 49) {	
+				
 			case 1:
 			mapx++;
 			break;
-		};
 			
 			case 2:
 			mapy++;
@@ -133,6 +111,16 @@ void generatemap (int startx, int starty) {
 		log("y coord");
 		snakexy = to_string(mapy);
 		log(snakexy);
+		if(mapx >=46) {
+			mapx = 4;
+		} else if(mapx <= 3) {
+			mapx = 45;
+		};
+		if(mapy >= 46) {
+			mapy = 4;
+		} else if(mapy <= 3) {
+			mapy = 45;
+		};
 		gamemap[mapx][mapy] = ' ';
 		};
 	
@@ -142,130 +130,38 @@ gamemap[startx][starty] = 's';
 }
 
 
-
-
-void printtotemplate(int north, int east, int south, int west, int layer, char character) { //generates template on a specific layer
-	switch(layer) {
-		case 0:
-		selectedarray = rendertemplateA1;
-		break;
-		
-		case 1:
-		selectedarray = rendertemplateA2;
-		break;
-		
-		case 3:
-		selectedarray = rendertemplateA3;
-		break;
-		
-		case 4:
-		selectedarray = rendertemplateB1;
-		break;
-		
-		case 5:
-		selectedarray = rendertemplateB2;
-		break;
-		
-		case 6:
-		selectedarray = rendertemplateB3;
-		break;
-		
-		case 7:
-		selectedarray = rendertemplateC1;
-		break;
-		
-		case 8:
-		selectedarray = rendertemplateC2;
-		break;
-		
-		case 9:
-		selectedarray = rendertemplateC3;
-		break;
-		
-		case 10:
-		selectedarray = rendertemplateD1;
-		break;
-		
-		case 11:
-		selectedarray = rendertemplateD2;
-		break;
-		
-		case 12:
-		selectedarray = rendertemplateD3;
-		break;
-		
-		case 13:
-		selectedarray = rendertemplateE1;
-		break;
-		
-		case 14:
-		selectedarray = rendertemplateE2;
-		break;
-		
-		case 15:
-		selectedarray = rendertemplateE3;
-		break;
-		
-		case 16:
-		selectedarray = rendertemplateF1;
-		break;
-		
-		case 17:
-		selectedarray = rendertemplateF2;
-		break;
-		
-		case 18:
-		selectedarray = rendertemplateF3;
-		break;
-	};
-		
-	for(int i; i <= vres; i++) {
-		for(int o; o <= hres; o++) {
-			if(i >= north && i <= south && o >= west && o <= east) {
-				*(*(selectedarray + i) + o) = character;
+void templateprinter(int north, int east, int south, int west, int layer) {
+	for(int o = 0; o < vres; o++) {
+		for(int i = 0; i < hres; i++) {
+			if(i <= east && i >= west && o <= south && o >= north) {
+				templates[i][o][layer] = 1;
 			};
 		};
 	};
-}
+};
 
-//rendering templates
-void settempplates() {
-	/*  player fov
-	a[1][2][3]
-	b[ ][ ][ ]
-	c[ ][ ][ ]
-	d[ ][ ][ ]
-	e[ ] p [ ]
-	*/
-	int midx = hres / 2;
-	int midy = vres / 2;
-	//a1 wall/portal tile
-	int westvert = midx / 4;
-	int plcvert = midy / 5;
-	int northvert = midy - plcvert;
-	int eastvert = midx - westvert;
-	int southvert = midy + plcvert;
-	printtotemplate(northvert, eastvert, southvert, westvert, 0, '+');
-	
-	
+
+void printtraptemplate(int x1, int y1, int x2, int y2, int layer2) {
+	int tempx = x2 - x1;
+	int tempy = y2 - y1;
+	int xovery;
 	
 }
 
-
-	
-void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool lefteright, int layer, char character) {
+void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool lefteright, int layer1) {
 	int tempx = east1 - west1;//get x relative position
 	int tempy = south1 - north1;//get y relative position
 	bool inverted;
-	int riseoverrun;
-	if(tempx <= tempy) { //get the amount of 
-		riseoverrun = tempy / tempx;
-		inverted = true; 
+	int rise;
+	
+	if(tempx > tempy) { //get the amount of 
+		rise = (tempx / tempy);
+		inverted = false; 
 		// if the angle is more down than right
 		
 	} else {
-		riseoverrun = tempx / tempy;
-		inverted = false;
+		rise = (tempy / tempx);
+		inverted = true;
 		// if the angle is more right than down
 	};
 	int pythagorusinput1 = pow(tempx, 2);
@@ -275,42 +171,57 @@ void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool l
 	pythagorusinput1 = 0;
 	pythagorusinput2 = 0;
 	pythagorusinput3 = 0;
-	
+	cout<<pythagorusoutput<<endl;
+	if(lefteright = false) {
 	for(int brug = 0; brug <= pythagorusoutput; brug++) {
-		if(lefteright = true) {
+		cout<<"tempx:"<<tempx<<endl;
+		cout<<"tempy:"<<tempy<<endl;
+		cout<<"rise over run:"<<rise<<endl;
+		cout<<"output 1:"<<pythagorusinput1<<endl;
+		cout<<"output 2:"<<pythagorusinput2<<endl;
+		cout<<"output 3:"<<pythagorusinput3<<endl;
 		if(inverted == true) {
 			
-		if(pythagorusinput1 == riseoverrun) {
+		if(pythagorusinput1 == rise) {
 			pythagorusinput1 = 0;
 			pythagorusinput2++;
 		};
-		printtotemplate(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer, character);
+		templateprinter(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer1);
 		pythagorusinput1++;
 		} else {
-		if(pythagorusinput1 == riseoverrun) {
+		if(pythagorusinput1 == rise) {
 			pythagorusinput1 = 0;
 			pythagorusinput2++;
 		};
-		printtotemplate(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer, character);
+		templateprinter(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer1);
 		pythagorusinput1++;
 		};
+	};
 	
 	} else {
-		riseoverrun = -riseoverrun;
+		rise = -rise;
+		for(int brug = 0; brug <= pythagorusoutput; brug++) {
+			
+				cout<<"tempx:"<<tempx<<endl;
+		cout<<"tempy:"<<tempy<<endl;
+		cout<<"rise over run:"<<rise<<endl;
+		cout<<"output 1:"<<pythagorusinput1<<endl;
+		cout<<"output 2:"<<pythagorusinput2<<endl;
+		cout<<"output 3:"<<pythagorusinput3<<endl;
 		if(inverted == true) {
 			
-		if(pythagorusinput1 == riseoverrun) {
+		if(pythagorusinput1 == rise) {
 			pythagorusinput1 = 0;
 			pythagorusinput2--;
 		};
-		printtotemplate(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer, character);
+		templateprinter(north1 + pythagorusinput2, west1 + pythagorusinput1, vres - north1, west1 + pythagorusinput1, layer1);
 		pythagorusinput1--;
 		} else {
-		if(pythagorusinput1 == riseoverrun) {
+		if(pythagorusinput1 == rise) {
 			pythagorusinput1 = 0;
 			pythagorusinput2--;
 		};
-		printtotemplate(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer, character);
+		templateprinter(north1 + pythagorusinput1, west1 + pythagorusinput2, vres - north1, west1 + pythagorusinput2, layer1);
 		pythagorusinput1--;
 		};
 		
@@ -318,6 +229,57 @@ void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool l
 	};
 
 }
+
+
+//rendering templates
+void settempplates() {
+	cout<<"setting templates\n";
+	/*  player fov
+	a[1][2][3][4][5]
+	b   [ ][ ][ ]
+	c   [ ][ ][ ]
+	d   [ ][ ][ ]
+	e   [ ] p [ ]
+	*/
+	int midx = hres / 2;
+	int midy = vres / 2;
+	//a1 wall/portal tile
+	int westvert = midx / 4;
+	int plcvert2 = midx / 4;
+	int plcvert = midy / 5;
+	int northvert = midy - plcvert;
+	int eastvert = midx - westvert;
+	int southvert = midy + plcvert;
+	int plcvert3 = eastvert;
+	int trapvert1 = northvert;
+	int trapvert2 = eastvert;
+	templateprinter(northvert, eastvert, southvert, westvert, 0); //a2
+	templateprinter(northvert, westvert, southvert, 0, 3); //a1
+	//a3 wall/portal tile
+	eastvert = hres - westvert;
+	westvert = midx + westvert;
+	int trapvert3 = westvert;
+	templateprinter(northvert, eastvert, southvert, westvert, 1); //a4
+	templateprinter(northvert, hres, southvert, eastvert, 4); //a5
+	westvert = midx - plcvert2;
+	eastvert = midx + plcvert2;
+	templateprinter(northvert, eastvert, southvert, westvert, 2); //a3
+	plcvert = midy / 3.5;
+	plcvert2 = midx / 2.5;
+	westvert = hres / 20;
+	northvert = midy - plcvert;
+	southvert = midy + plcvert;
+	eastvert = midx - plcvert2;
+	templateprinter(northvert, eastvert, southvert, westvert, 5); //b2
+	printtrapezoidtemplate(northvert, trapvert2, trapvert1, eastvert, true, 5);
+	
+	
+	
+}
+
+
+	
+
 
 void lookingat() {
 	bool hitting = false;
@@ -327,6 +289,9 @@ void lookingat() {
 	switch(playerfacing[face]) {
 	case 'n':
 	while(!hitting) {
+		if(checky <= 3) {
+			checky = 45;
+		};
 		if(gamemap[checky][checkx] == 'e') {
 			checky--;
 		} else {
@@ -337,6 +302,9 @@ void lookingat() {
 
 	case 'e':
 	while(!hitting) {
+		if(checkx >= 46) {
+			checkx = 4;
+		};
 		if(gamemap[checky][checkx] == 'e') {
 			checkx++;
 		} else {
@@ -347,6 +315,9 @@ void lookingat() {
 	
 	case 's':
 	while(!hitting) {
+		if(checky >= 46) {
+			checky = 4;
+		};
 		if(gamemap[checky][checkx] == 'e') {
 			checky++;
 		} else {
@@ -357,6 +328,9 @@ void lookingat() {
 	
 	case 'w':
 	while(!hitting) {
+		if(checkx <= 3) {
+			checkx = 45;
+		};
 		if(gamemap[checky][checkx] == 'e') {
 			checkx--;
 		} else {
@@ -490,22 +464,36 @@ int main() {
 
 
 	//setres();
-
+vres = 43;
+hres = 168;
     system("PAUSE");
+	auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Type any key. Press 'q' to quit." << std::endl;
 	system("CLS");
 	srand(time(NULL));
 	
-
-    generatemap(25, 25);
-	for(int james = 0; james < 50; james++) {
-		for( int bob = 0; bob < 50; bob++) {
-			cout<<gamemap[bob][james];
+	settempplates();
+    //generatemap(25, 25);
+	for(int harold = 0; harold < 13; harold++) {
+	for(int james = 0; james < vres; james++) {
+		for( int bob = 0; bob < hres; bob++) {
+			/*SetConsoleTextAttribute(hConsole, 4);
+			if(bob == 3||bob == 46||james == 3||james == 46) {
+				SetConsoleTextAttribute(hConsole, 5);
+			};
+			if(gamemap[bob][james] != 'W') {
+				SetConsoleTextAttribute(hConsole, 3);
+			}; */
+			cout<<templates[bob][james][harold];
 		};
 		cout<<endl;
 	};
+	cout<<endl<<endl;
+	};
 	cout<<"portal is at "<<mapx<<", "<<mapy<<endl;
-	
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration = end - start;
+	std::cout << "Execution time: " << duration.count() << " seconds" << std::endl;
 	
 	system("PAUSE");
     /*while (true) {
