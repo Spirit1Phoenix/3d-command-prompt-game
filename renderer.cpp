@@ -5,6 +5,7 @@
 #include <chrono>
 #include <time.h>
 #include <thread>
+#include <fstream>
 
 
 
@@ -21,6 +22,8 @@ bool rendering = true;
 char (*selectedarray)[100];
 char screen[300][100];
 int colours[300][100];
+	int mapx;
+	int mapy;
 
 
 //player based variables
@@ -58,27 +61,41 @@ char rendertemplateF3[300][100];
 
 
 
-char gamemap[100][100] = {'w'};
+char gamemap[50][50] = {'w'};
 
+void log(const std::string& message) { //chatgpt logging base
+    std::ofstream logfile("log.txt", std::ios::app);  // Open log file in append mode
+    if (logfile.is_open()) {
+        logfile << message << std::endl;
+        logfile.close();
+    } else {
+        std::cerr << "Failed to open log file." << std::endl;
+    }
+}
 
 void generatemap (int startx, int starty) {
 	//set entire map to walls
 	int snakegen;
-	
-	for(int mapresety = 0; mapresety < 100; mapresety++) {
-		for(int mapresetx = 0; mapresetx < 100; mapresetx++) {
-			gamemap[mapresetx][mapresety] = 'w';
+	int snakelengthrand;
+	string snakexy;
+	for(int mapresety = 0; mapresety < 50; mapresety++) {
+		for(int mapresetx = 0; mapresetx < 50; mapresetx++) {
+			gamemap[mapresetx][mapresety] = 'W';
 		};
 	};
 	int nextmovecontrol = 0;
-	int mapx = startx;
-	int mapy = starty;
+	//int mapx = startx;
+	//int mapy = starty;
+	mapy = starty;
+	mapx = startx;
+
 	for(int snakeai = 0; snakeai < 100; snakeai++) {
 		snakegen = (rand()%100);
+		snakelengthrand = 0;
 		
-		if(snakegen < 25) {
+		if(snakegen < 50) {
 			nextmovecontrol--;
-		} else if(snakegen > 75) {
+		} else if(snakegen > 50) {
 			nextmovecontrol++;
 		};
 		
@@ -87,15 +104,20 @@ void generatemap (int startx, int starty) {
 		} else if(nextmovecontrol == -1) {
 			nextmovecontrol = 3;
 		};
+		while(snakelengthrand < 6) {
+		
+		snakelengthrand = (rand()%10);
 		
 		switch(nextmovecontrol) {
 			case 0:
 			mapy--;
 			break;
 			
+		if(mapx != 49) {	
 			case 1:
 			mapx++;
 			break;
+		};
 			
 			case 2:
 			mapy++;
@@ -105,9 +127,18 @@ void generatemap (int startx, int starty) {
 			mapx--;
 			break;
 		};
+		log("x coord");
+		snakexy = to_string(mapx);
+		log(snakexy);
+		log("y coord");
+		snakexy = to_string(mapy);
+		log(snakexy);
 		gamemap[mapx][mapy] = ' ';
+		};
 	
 };
+gamemap[mapx][mapy] = '#';
+gamemap[startx][starty] = 's';
 }
 
 
@@ -350,12 +381,7 @@ void gunlogic() {
 
 
 
-void engine() {
-	
-	thread clock(gameclock);
-	thread externalscr(renderscreen);
-	thread internalscr(composscreen);
-};
+
 
 
 void gameclock() { //runs internal clock to sync everything to
@@ -391,7 +417,7 @@ void composscreen() {
 void renderscreen() {
 		while(gamerun) {
 		while(runtime == prevrun) {
-				sleep(10);
+				this_thread::sleep_for(chrono::milliseconds(10));
 		};
 		
 		system("CLS");//clears screen
@@ -449,7 +475,12 @@ void setres() {
 	
 }
 
+void engine() {
 	
+	thread clock(gameclock);
+	thread externalscr(renderscreen);
+	thread internalscr(composscreen);
+};
 	
 	
 
@@ -457,22 +488,27 @@ void setres() {
 int main() {
     char input;
 
-	setres();
 
-    
+	//setres();
+
+    system("PAUSE");
     std::cout << "Type any key. Press 'q' to quit." << std::endl;
+	system("CLS");
+	srand(time(NULL));
 	
 
-	
-
-    generatemap(10, 10);
-	for(int james = 0; james < 100; james++) {
-		for( int bob = 0; bob < 100; bob++) {
+    generatemap(25, 25);
+	for(int james = 0; james < 50; james++) {
+		for( int bob = 0; bob < 50; bob++) {
 			cout<<gamemap[bob][james];
 		};
 		cout<<endl;
 	};
-    while (true) {
+	cout<<"portal is at "<<mapx<<", "<<mapy<<endl;
+	
+	
+	system("PAUSE");
+    /*while (true) {
         if (_kbhit()) {  // Check if a key has been pressed
             input = _getch();  // Read the key that was pressed
             
@@ -483,7 +519,7 @@ int main() {
             std::cout << "You pressed: " << input << endl;
 			
         }
-		
+		*/
         
         // Perform other tasks or update the program state here
     }
