@@ -21,11 +21,22 @@ bool rendering = true;
 //player based variables
 int playerxpos; //x position on the array
 int playerypos; //y position on the array
-char playerfacing[4] = {'n','e','s','w'} //0 for north, 1 for east, 2 for south, 3 for west.
+char playerfacing[4] = {'n','e','s','w'}; //0 for north, 1 for east, 2 for south, 3 for west.
 int targetx; //x position of target
 int targety; //y position of target
-int guntype[4] = {3,5,7,20,16,0} //first value is damage, second is clip size, third is firing speed, fourth is reload speed, fifth is damage falloff percent, sixth is the model id
+int guntype[6] = {3,5,7,20,16,0}; //first value is damage, second is clip size, third is firing speed, fourth is reload speed, fifth is damage falloff percent, sixth is the model id
 
+
+
+void printtotemplate(int north, int east, int south, int west, int layer, char character) { //generates template on a specific layer
+	for(int i; i <= vres; i++) {
+		for(int o; o <= hres; o++) {
+			if(i >= north && i <= south && o >= west && o <= east) {
+				rendertemplates[i][o][layer] = character;
+			};
+		};
+	};
+}
 
 //rendering templates
 void settempplates() {
@@ -48,20 +59,41 @@ void settempplates() {
 	
 	
 	
-};
-
-void printtotemplate(int north, int east, int south, int west, int layer, char character) {
-	for(int i; i <= vres; i++) {
-		for(int o; o <= hres; o++) {
-			if(i >= north && i <= south && o >= west && o <= east) {
-				rendertemplates[i][o][layer] = character;
-			};
-		};
-	};
 }
+
+
 	
-	
-	
+void printtrapezoidtemplate(int north1, int east1, int south1, int west1, bool lefteright, int layer, char character) {
+	if(lefteright) {
+		//facing left
+		int tempa = south - north;
+		int tempb = east - west;
+		int tempc;
+		int tempd;
+		int tempe;
+		int tempf;
+		int tempg;
+		if (tempa <= tempb){
+			tempc = tempb / tempa;
+			for(int b = 0; b < tempa; b++) {
+				tempd = north + b; //north part
+				tempe = west + tempc; //east side
+				tempf = vres - tempd; //south side
+				printtotemplate(tempd, tempe, tempf, west, layer, character);
+			};
+		} else {
+			tempc = tempa / tempb;
+			for(int b = 0; b < tempa; b++) {
+				tempd = north + b; //north part
+				tempe = west + tempc; //east side
+				tempf = vres - tempd; //south side
+				printtotemplate(tempd, tempe, tempf, west, layer, character);
+		};
+		};
+		
+		
+
+}
 
 void lookingat() {
 	bool hitting = false;
@@ -137,7 +169,6 @@ void engine() {
 	thread externalscr(renderscreen);
 	thread internalscr(composscreen);
 };
-
 
 
 void gameclock() { //runs internal clock to sync everything to
@@ -249,7 +280,8 @@ int main() {
 	
 	//templates init
 	char rendertemplates[vres][hres][14] = {NULL}
-    
+    engine();
+	
     while (true) {
         if (_kbhit()) {  // Check if a key has been pressed
             input = _getch();  // Read the key that was pressed
