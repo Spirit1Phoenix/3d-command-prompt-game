@@ -26,31 +26,42 @@ int screen[300][100];
 char gamemap[50][50] = {'w'};
 int mapx;
 int mapy;
+int fov;
 
+//0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
 //player based variables
 int playerxpos; //x position on the array
 int playerypos; //y position on the array
+int playersubx; //sub array value x
+int playersuby; //sub array value y
+double playerx; //player position x
+double playery; //player position y
 int face = 0;
 char playerfacing[4] = {'n','e','s','w'}; //0 for north, 1 for east, 2 for south, 3 for west.
+int playerrotation = 0; //goes from 0 to 360
 int targetx; //x position of target
 int targety; //y position of target
 int guntype[6] = {3,5,7,20,16,0}; //first value is damage, second is clip size, third is firing speed, fourth is reload speed, fifth is damage falloff percent, sixth is the model id
+
+struct Point {
+    double x;
+    double y;
+};
+
 
 //render based variables
 int wallexist[5][4] = {0};
 int checkwallx = 0;
 int checkwally = 0;
 
-void setCursorPosition(int x, int y) {
+void resetcursor() {
     HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD pos;
-    pos.X = x;
-    pos.Y = y;
-    SetConsoleCursorPosition(consoleHandle, pos);
+    COORD coords = {0, 0};
+    SetConsoleCursorPosition(consoleHandle, coords);
 }
 
-int wraparoundcheckshort(int wrapy) {
+int wraparoundcheckshort(int wrapy) { //TODO: CHANGE TO FIT NEW MAP TYPE
 	
 	if(wrapy == 3) {
 	wrapy = 45;
@@ -64,7 +75,7 @@ int wraparoundcheckshort(int wrapy) {
 	return wrapy;
 }
 
-int wraparoundchecklong(int wrap) {
+int wraparoundchecklong(int wrap) { //TODO: CHANGE TO FIT NEW MAP TYPE
 	switch(wrap) {
 		case 3:
 		wrap = 45;
@@ -180,7 +191,7 @@ void log(const std::string& message) { //chatgpt logging base
     }
 }
 
-void generatemap (int startx, int starty) {
+void generatemap (int startx, int starty) { //generates map by making a snake ai randomly clear out an area
 	//set entire map to walls
 	int snakegen;
 	int snakelengthrand;
@@ -196,7 +207,7 @@ void generatemap (int startx, int starty) {
 	mapy = starty;
 	mapx = startx;
 
-	for(int snakeai = 0; snakeai < 10; snakeai++) {
+	for(int snakeai = 0; snakeai < 30; snakeai++) { //makes the snake roll for a random rumber to decide if it turns left or right
 		snakegen = (rand()%100);
 		snakelengthrand = 0;
 		
@@ -232,15 +243,15 @@ void generatemap (int startx, int starty) {
 			mapx--;
 			break;
 		};
-		if(mapx >=46) {
-			mapx = 4;
-		} else if(mapx <= 3) {
-			mapx = 45;
+		if(mapx >=50) {
+			mapx = 0;
+		} else if(mapx <= 0) {
+			mapx = 50;
 		};
-		if(mapy >= 46) {
-			mapy = 4;
-		} else if(mapy <= 3) {
-			mapy = 45;
+		if(mapy >= 50) {
+			mapy = 0;
+		} else if(mapy <= 0) {
+			mapy = 50;
 		};
 		gamemap[mapx][mapy] = ' ';
 		};
@@ -252,10 +263,99 @@ gamemap[mapx][mapy] = '#';
 }
 
 
-int playerrotation = 0;
+Point calculateMovement(double angle, double distance) {
+    double radianAngle = angle * M_PI / 180.0;  // Convert angle to radians
+    double deltaX = distance * cos(radianAngle);  // Calculate horizontal component
+    double deltaY = distance * sin(radianAngle);  // Calculate vertical component
+
+    Point movement;
+    movement.x = deltaX;
+    movement.y = deltaY;
+
+    return movement;
+}
+
+
+int subpixelcheck(int sub) {
+	if(sub < 0) {
+		sub = 16 + sub;
+	} else if(sub > 16) {
+		sub = sub - 16;
+	};
+	return sub;
+}
+
+int rotationcheck(int rotation) { //makes sure the rotation is within a 0-360 degree range
+	if(rotation < 0) {
+		rotation = 360 + rotation;
+	} else if(rotation > 360) {
+		rotation = rotation - 360;
+	};
+	return rotation;
+}
+
+int converttofulllength(int mainnumber, int subnumber) { //converts two numbers to an internal full length number
+	int fulllength = mainnumber * 16;
+	fulllength = fulllength + subnumber;
+	return fulllength;
+}
+
+void converttomainandsub(int lengthfull, int& mainnumber, int& subnumber) { //converts full length number to main and sub number
+	if(lengthfull == 0) {
+		mainnumber = 0;
+		subnumber = 0;
+	} else {
+	double mainequation = static_cast<double>(lengthfull) / 16.0;
+	int mainresult = static_cast<int>(mainequation);
+	int subresult = lengthfull % 16;
+	mainnumber = mainresult;
+	subnumber = subresult;
+	};
+}
+
+int raycaster(int xfulllength, int yfulllength, int rotata) {
+	
+	double angle = rotata * M_PI / 180; //convert angle to radians
+	
+	int xdelta;
+	int ydelta;
+	int mapdistx;
+	int mapdisty;
+	int garbagelol; //garbage int used to throw away an unneeded part of a function. should not be read from
+	int raycastdistance = 0;
+	
+	for(int ray = 0; ray < 112; ray++) {
+		
+	    xdelta = cos(angle) * ray; //get an offset based on the angle you wanna move
+	    ydelta = sin(angle) * ray;
+	    mapdistx = xfulllength - xdelta; //convert that offset to an actual x y position (long form)
+	    mapdisty = yfulllength - ydelta;
+	    converttomainandsub(mapdistx, mapdistx, garbagelol); //convert the long form to a short main/sub value
+	    converttomainandsub(mapdisty, mapdisty, garbagelol);
+	    if(gamemap[mapdistx][mapdisty] != ' ') { //check the game map to see if it hits anything
+		raycastdistance = ray;
+		break;
+	    };
+	};
+	
+	return raycastdistance;
+	
+}
+
 void render3d() {
-	
-	
+	playerrotation = rotationcheck(playerrotation);
+	int screendist[120] = {-1};
+	int midcheck = fov / 2;
+	int playerxfull = converttofulllength(playerxpos, playersubx);
+	int playeryfull = converttofulllength(playerypos, playersuby);
+	int rotatio;
+	for(int i = 0; i < fov; i++) {
+		rotatio = i - midcheck;
+		screendist[i] = raycaster(playerxfull, playeryfull, rotatio);
+		
+		cout<<"iteration "<<i<<": "<<screendist[i]<<endl;
+		
+	};
 	
 	
 	
@@ -649,13 +749,19 @@ void setres() {
 	while(true) {
 	cout<<"please select your resolution\n";
 	cout<<"the default resolution is 118 across by 28 high, or 167 by 42\n";
-	cout<<"if you enter something that isnt a number, any errors that happen are on you, restart the program nerd\n";
+	//cout<<"if you enter something that isnt a number, any errors that happen are on you, restart the program nerd\n";
 	cout<<"please input width\n";
 	cin>>hres;
 	cout<<"please input height\n";
 	cin>>vres;
 	cout<<"now testing resolution\n";
-	
+			 if (std::cin.fail()) {
+            // Input was not a valid integer, clear fail state and ignore invalid input
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Error: Invalid input. Please enter a valid integer.\n";
+            continue;
+			};
 	system("PAUSE");
 	
 	system("CLS");
@@ -688,6 +794,31 @@ void setres() {
 	
 }
 
+void setfov() {
+	system("CLS");
+	SetConsoleTextAttribute(hConsole, 8);
+	while(true) {
+	cout<<"please enter fov\nfov must be within 60-120\n";
+	int testfov;
+	cin>>testfov;
+		 if (std::cin.fail()) {
+            // Input was not a valid integer, clear fail state and ignore invalid input
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Error: Invalid input. Please enter a valid integer.\n";
+            continue;
+			};
+	int testfovagain = testfov;
+	cout<<"you have selected "<<testfovagain<<"\n";
+	if(testfovagain < 60||testfovagain > 120) {
+		cout<<"error: fov outside of range\n";
+	} else {
+		cout<<"fov saved. returning to previous menu";
+		break;
+	};
+};
+}
+
 void engine() {
 	
 	thread clock(gameclock);
@@ -700,6 +831,7 @@ void turnleft() {
 	if(face < 0) {
 		face = 3;
 	};
+	playerrotation = playerrotation - 90;
 }
 
 void turnright() {
@@ -707,6 +839,7 @@ void turnright() {
 	if(face > 3) {
 		face = 0;
 	};
+	playerrotation = playerrotation + 90;
 }
 	
 void tryforward() {
@@ -779,20 +912,21 @@ void showmap() {
 
 int main() {
     char input;
-vres = 40;
-hres = 156;
-    setres();
+vres = 38;
+hres = 138;
+    //setres();
 	auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Type any key. Press 'q' to quit." << std::endl;
 	system("CLS");
 	srand(time(NULL));
-	
+	fov = 90;
 	settempplates();
     generatemap(25, 25);
 	playerxpos = 25;
 	playerypos = 25;
 	
-	
+	playersubx = 8;
+	playersuby = 8;
 	
 
 	
@@ -819,14 +953,20 @@ hres = 156;
                 break;  // Exit the loop if 'q' is pressed
 			};
 			
-		
-				composscreen();
-				imprenderscreen();
+		auto start = std::chrono::high_resolution_clock::now();
+				//composscreen();
+				//imprenderscreen();
 				SetConsoleTextAttribute(hConsole, 15);
+				
+				render3d();
+				
 			if(input == 'm') {
 			showmap();
 			};
 				cout<<"facing: "<<playerfacing[face]<<"   x = "<<playerxpos<<"   y = "<<playerypos;
+					auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration = end - start;
+	std::cout << "Execution time: " << duration.count() << " seconds" << std::endl;
 		};
 			
         }
